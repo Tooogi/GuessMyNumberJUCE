@@ -41,5 +41,6 @@ It's a simple game in which the computer chooses a number between a specified ra
 
 # To-do
 
-- Rewrite the Menu Chooser to display the difficulty level buttons after clicking the play button.
+- <strike>Rewrite the Menu Chooser to display the difficulty level buttons after clicking the play button.</strike> - DONE
+- Go back to the Main Menu after clicking stop button.
 - Add game option for "who guess the number". The player can pick a number and the computer must guess what it is.
