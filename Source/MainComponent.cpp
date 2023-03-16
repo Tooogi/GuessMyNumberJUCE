@@ -29,16 +29,19 @@ MainComponent::MainComponent()
     easyButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     easyButton.setButtonText("Easy");
     easyButton.onClick = [this]() {easy(); };
+    easyButton.setVisible(false);
     addAndMakeVisible(easyButton);
 
     normalButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     normalButton.setButtonText("Normal");
     normalButton.onClick = [this]() {normal(); };
+    normalButton.setVisible(false);
     addAndMakeVisible(normalButton);
 
     hardButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     hardButton.setButtonText("Hard");
     hardButton.onClick = [this]() {hard(); };
+    hardButton.setVisible(false);
     addAndMakeVisible(hardButton);
 
     /* Title of new game */
@@ -81,6 +84,24 @@ void MainComponent::play() {
 
         playState = PlayState::Play;
 
+        juce::Rectangle<int> bounds = getLocalBounds();
+
+        auto headerHeight = 36;
+        header.setBounds(bounds.removeFromTop(headerHeight));
+
+        /* Sidebar on the right hand side */
+        auto sideBarArea = bounds.removeFromRight(juce::jmax(80, bounds.getWidth() / 4));
+        sidebar.setBounds(sideBarArea);
+
+        /* Buttons on top of the sidebar */
+        auto sideItemHeight = 65;
+        auto sideItemMargin = 5;
+
+        easyButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
+        normalButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
+        hardButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
+        stopButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
+
         yourGuessInput.setEnabled(true);
 
         byeLabel.setVisible(false);
@@ -89,35 +110,20 @@ void MainComponent::play() {
 
 }
 
-void MainComponent::stop() {
-
-    if (playState == PlayState::Play) {
-
-        playState = PlayState::Stop;
-
-        yourGuessInput.setVisible(false);
-
-        addAndMakeVisible(byeLabel);
-        byeLabel.setText("Thank you for playing with me. :)", juce::dontSendNotification);
-        byeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-        byeLabel.setJustificationType(juce::Justification::right);
-
-    }
-
-}
-
 void MainComponent::easy() {
 
-    if (playState == PlayState::Stop) {
-
+    if (playState == PlayState::Play || easyLevel == DifficultyLevel::Easy || playState == PlayState::Stop) {
+        
         playState = PlayState::Play;
+
+        byeLabel.setVisible(false);
+        newGameLabel.setVisible(false);
+        resultLabel.setVisible(false);
         header.setButtonText("Guess a number between 1 and 10");
 
         juce::Random random;
         secretNumber = random.nextInt(10) + 1; // generate a number between 1 and 10
         guessesRemaining = 10;
-        resultLabel.setVisible(false);
-        newGameLabel.setVisible(false);
 
         addAndMakeVisible(yourGuessLabel);
         yourGuessLabel.setText("Your Guess:", juce::dontSendNotification);
@@ -130,20 +136,24 @@ void MainComponent::easy() {
         yourGuessInput.onTextChange = [this] { checkGuess(); };
         yourGuessInput.setEditable(true);
     }
+
 }
 
 void MainComponent::normal() {
 
-    if (playState == PlayState::Stop) {
+    if (playState == PlayState::Play || normalLevel == DifficultyLevel::Normal || playState == PlayState::Stop) {
 
         playState = PlayState::Play;
+
+        byeLabel.setVisible(false);
+        newGameLabel.setVisible(false);
+        resultLabel.setVisible(false);
         header.setButtonText("Guess a number between 1 and 100");
 
         juce::Random random;
         secretNumber = random.nextInt(100) + 1; // generate a number between 1 and 100
         guessesRemaining = 10;
         resultLabel.setVisible(false);
-        newGameLabel.setVisible(false);
 
         addAndMakeVisible(yourGuessLabel);
         yourGuessLabel.setText("Your Guess:", juce::dontSendNotification);
@@ -161,16 +171,19 @@ void MainComponent::normal() {
 
 void MainComponent::hard() {
 
-    if (playState == PlayState::Stop) {
+    if (playState == PlayState::Play || hardLevel == DifficultyLevel::Hard || playState == PlayState::Stop) {
 
         playState = PlayState::Play;
+
+        byeLabel.setVisible(false);
+        newGameLabel.setVisible(false);
+        resultLabel.setVisible(false);
         header.setButtonText("Guess a number between 1 and 1000");
 
         juce::Random random;
         secretNumber = random.nextInt(1000) + 1; // generate a number between 1 and 1000
         guessesRemaining = 10;
         resultLabel.setVisible(false);
-        newGameLabel.setVisible(false);
 
         addAndMakeVisible(yourGuessLabel);
         yourGuessLabel.setText("Your Guess:", juce::dontSendNotification);
@@ -182,6 +195,29 @@ void MainComponent::hard() {
         yourGuessInput.setColour(juce::Label::textColourId, juce::Colours::white);
         yourGuessInput.onTextChange = [this] { checkGuess(); };
         yourGuessInput.setEditable(true);
+    }
+
+}
+
+void MainComponent::stop() {
+
+    if (playState == PlayState::Play) {
+
+        playState = PlayState::Stop;
+
+        newGameLabel.setVisible(false);
+        yourGuessInput.setVisible(false);
+        yourGuessLabel.setVisible(false);
+        resultLabel.setVisible(false);
+        gameLabel.setVisible(false);
+
+        header.setButtonText("Bye");
+
+        addAndMakeVisible(byeLabel);
+        byeLabel.setText("Thank you for playing with me. :)", juce::dontSendNotification);
+        byeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+        byeLabel.setJustificationType(juce::Justification::right);
+
     }
 
 }
@@ -246,12 +282,7 @@ void MainComponent::resized()
     /* Buttons on top of the sidebar */
     auto sideItemHeight = 65;
     auto sideItemMargin = 5;
-    easyButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
-    normalButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
-    hardButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
-
-    //playButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
-    stopButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
+    playButton.setBounds(sideBarArea.removeFromTop(sideItemHeight).reduced(sideItemMargin));
 
 
     newGameLabel.setBounds(10, 50, getWidth() - 100, 20);
